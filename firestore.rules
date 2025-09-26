@@ -1,0 +1,25 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /rooms/{roomId} {
+      allow read: if true;
+      allow create: if true; // Allow anyone to create rooms for now
+      allow update: if true; // Allow updates for now - in production, add proper auth
+      allow delete: if true; // Allow deletes for now - in production, add proper auth
+
+      match /players/{playerId} {
+        allow read: if true;
+        allow create: if true; // Allow anyone to create players for now
+        allow update: if true; // Allow updates for now - in production, add proper auth
+        allow delete: if true; // Allow deletes for now - in production, add proper auth
+      }
+
+      match /rounds/{roundId} {
+        allow read: if true;
+        allow create: if true; // Allow anyone to create rounds for now
+        allow update: if true; // Allow updates for now - in production, add proper auth
+        allow delete: if true; // Allow deletes for now - in production, add proper auth
+      }
+    }
+  }
+}
