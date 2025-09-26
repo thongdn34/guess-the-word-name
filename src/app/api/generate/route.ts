@@ -7,7 +7,7 @@ const openai = new OpenAI({
 
 export async function POST(request: NextRequest) {
   try {
-    const { roomId, language = 'vi', promptOverride } = await request.json();
+    const { roomId, promptOverride } = await request.json();
 
     if (!roomId) {
       return NextResponse.json({ error: 'Room ID is required' }, { status: 400 });

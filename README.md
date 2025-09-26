@@ -135,10 +135,15 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 ### Vercel (Recommended)
 
-1. Push your code to GitHub
+The easiest way to deploy is using Vercel. See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+
+**Quick Deploy:**
+1. Push your code to GitHub: [https://github.com/thong-elfie/guess-the-word](https://github.com/thong-elfie/guess-the-word)
 2. Connect your repository to Vercel
 3. Add environment variables in Vercel dashboard
 4. Deploy
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/thong-elfie/guess-the-word)
 
 ### Other Platforms
 
