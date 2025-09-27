@@ -25,7 +25,8 @@ export interface Round {
   generatedBy: 'openai' | 'manual';
   startedAt?: Date;
   endedAt?: Date;
-  winnerId?: string;
+  winnerId?: string; // Keep for backward compatibility
+  winnerIds?: string[]; // New field for multiple winners
   winnerMarkedBy?: string;
   createdAt: Date;
 }

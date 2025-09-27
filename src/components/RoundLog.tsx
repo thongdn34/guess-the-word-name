@@ -75,7 +75,24 @@ export default function RoundLog({ rounds, players, isHost }: RoundLogProps) {
                   </div>
                 </div>
                 
-                {round.winnerId && (
+                {(round.winnerIds && round.winnerIds.length > 0) && (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">
+                      Winner{round.winnerIds.length > 1 ? 's' : ''}:
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {round.winnerIds.map((winnerId, index) => (
+                        <span key={winnerId} className="font-medium text-green-600">
+                          {getPlayerName(winnerId)}
+                          {index < (round.winnerIds?.length || 0) - 1 && ', '}
+                        </span>
+                      ))}
+                      <span className="text-green-600"> (+50 pts each)</span>
+                    </div>
+                  </div>
+                )}
+                
+                {round.winnerId && !round.winnerIds && (
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-600">Winner:</span>
                     <span className="font-medium text-green-600">
@@ -84,7 +101,7 @@ export default function RoundLog({ rounds, players, isHost }: RoundLogProps) {
                   </div>
                 )}
                 
-                {round.endedAt && !round.winnerId && (
+                {round.endedAt && !round.winnerId && !round.winnerIds && (
                   <div className="text-sm text-gray-500">
                     Round ended without winner
                   </div>

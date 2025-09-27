@@ -16,7 +16,7 @@ export default function RoomControls({ room, currentRound, players, roomId }: Ro
   const [isGenerating, setIsGenerating] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [isMarkingWinner, setIsMarkingWinner] = useState(false);
-  const [selectedWinner, setSelectedWinner] = useState<string>('');
+  const [selectedWinners, setSelectedWinners] = useState<string[]>([]);
 
   const generateWords = async () => {
     setIsGenerating(true);
@@ -91,33 +91,45 @@ export default function RoomControls({ room, currentRound, players, roomId }: Ro
     }
   };
 
-  const markWinner = async () => {
-    if (!selectedWinner || !currentRound) return;
+  const markWinners = async () => {
+    if (selectedWinners.length === 0 || !currentRound) return;
     
     setIsMarkingWinner(true);
     try {
       await runTransaction(db, async (transaction) => {
-        // First, read the player document to get current score
-        const playerRef = doc(db, 'rooms', roomId, 'players', selectedWinner);
-        const playerDoc = await transaction.get(playerRef);
+        // First, read all player documents to get current scores
+        const playerRefs = selectedWinners.map(winnerId => 
+          doc(db, 'rooms', roomId, 'players', winnerId)
+        );
+        const playerDocs = await Promise.all(
+          playerRefs.map(ref => transaction.get(ref))
+        );
         
-        if (!playerDoc.exists()) {
-          throw new Error('Player not found');
+        // Check if all players exist
+        for (let i = 0; i < playerDocs.length; i++) {
+          if (!playerDocs[i].exists()) {
+            throw new Error(`Player ${selectedWinners[i]} not found`);
+          }
         }
         
-        const currentScore = playerDoc.data().score || 0;
+        // Get current scores
+        const currentScores = playerDocs.map(doc => doc.data()?.score || 0);
         
         // Then perform all writes
-        // Update round with winner
+        // Update round with winners
         const roundRef = doc(db, 'rooms', roomId, 'rounds', currentRound.id);
         transaction.update(roundRef, {
-          winnerId: selectedWinner,
+          winnerIds: selectedWinners,
           winnerMarkedBy: room.hostId,
           endedAt: serverTimestamp(),
         });
         
-        // Update player score
-        transaction.update(playerRef, { score: currentScore + 50 });
+        // Update all player scores
+        playerRefs.forEach((playerRef, index) => {
+          transaction.update(playerRef, { 
+            score: currentScores[index] + 50 
+          });
+        });
       });
       
       // Reset room status
@@ -126,18 +138,18 @@ export default function RoomControls({ room, currentRound, players, roomId }: Ro
         currentRoundId: null,
       });
       
-      setSelectedWinner('');
+      setSelectedWinners([]);
       
     } catch (error) {
-      console.error('Error marking winner:', error);
-      alert('Failed to mark winner. Please try again.');
+      console.error('Error marking winners:', error);
+      alert('Failed to mark winners. Please try again.');
     } finally {
       setIsMarkingWinner(false);
     }
   };
 
   const canStart = currentRound && currentRound.id && currentRound.importerId === 'pending' && players.length >= 2;
-  const canMarkWinner = currentRound && currentRound.startedAt && !currentRound.winnerId;
+  const canMarkWinner = currentRound && currentRound.startedAt && !currentRound.winnerIds && !currentRound.winnerId;
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -166,26 +178,33 @@ export default function RoomControls({ room, currentRound, players, roomId }: Ro
         {canMarkWinner && (
           <div className="space-y-3">
             <label className="block text-sm font-medium text-gray-700">
-              Select Winner
+              Select Winners (Multiple Selection)
             </label>
-            <select
-              value={selectedWinner}
-              onChange={(e) => setSelectedWinner(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="">Choose a player...</option>
+            <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-lg p-2">
               {players.map((player) => (
-                <option key={player.id} value={player.id}>
-                  {player.username}
-                </option>
+                <label key={player.id} className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={selectedWinners.includes(player.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedWinners([...selectedWinners, player.id]);
+                      } else {
+                        setSelectedWinners(selectedWinners.filter(id => id !== player.id));
+                      }
+                    }}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <span className="text-sm text-gray-700">{player.username}</span>
+                </label>
               ))}
-            </select>
+            </div>
             <button
-              onClick={markWinner}
-              disabled={!selectedWinner || isMarkingWinner}
+              onClick={markWinners}
+              disabled={selectedWinners.length === 0 || isMarkingWinner}
               className="w-full bg-yellow-600 text-white py-3 px-4 rounded-lg font-medium hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isMarkingWinner ? 'Marking...' : 'Mark Winner (+50 pts)'}
+              {isMarkingWinner ? 'Marking...' : `Mark ${selectedWinners.length} Winner${selectedWinners.length !== 1 ? 's' : ''} (+50 pts each)`}
             </button>
           </div>
         )}

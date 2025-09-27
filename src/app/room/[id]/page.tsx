@@ -22,6 +22,7 @@ export default function RoomPage() {
   const [isInitialized, setIsInitialized] = useState(false);
   const wordCardRef = useRef<HTMLDivElement>(null);
   const [previousRoundId, setPreviousRoundId] = useState<string | null>(null);
+  const [showRoundLog, setShowRoundLog] = useState(false);
 
   const { gameState, loading, error } = useRoom(roomId);
   const { player, signOut: playerSignOut } = usePlayer(
@@ -152,8 +153,29 @@ export default function RoomPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Header roomId={roomId} player={player} onSignOut={handleSignOut} />
 
+      {/* Host Controls - RoundLog Toggle */}
+      {isHost && (
+        <div className="bg-white shadow-sm border-b">
+          <div className="container mx-auto px-4 py-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Host Controls</h2>
+              <button
+                onClick={() => setShowRoundLog(!showRoundLog)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  showRoundLog
+                    ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {showRoundLog ? 'Hide' : 'Show'} Round History
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className={`grid grid-cols-1 gap-8 ${isHost && showRoundLog ? 'lg:grid-cols-3' : 'lg:grid-cols-2'}`}>
           {/* Left Column - Players and Controls */}
           <div className="space-y-6">
             <PlayerList
@@ -197,14 +219,16 @@ export default function RoomPage() {
             <Scoreboard players={gameState.players} />
           </div>
 
-          {/* Right Column - Round Log */}
-          <div>
-            <RoundLog
-              rounds={gameState.rounds}
-              players={gameState.players}
-              isHost={isHost}
-            />
-          </div>
+            {/* Right Column - Round Log (Host Only, Toggleable) */}
+            {isHost && showRoundLog && (
+              <div className="animate-fade-in">
+                <RoundLog
+                  rounds={gameState.rounds}
+                  players={gameState.players}
+                  isHost={isHost}
+                />
+              </div>
+            )}
         </div>
       </div>
     </div>
