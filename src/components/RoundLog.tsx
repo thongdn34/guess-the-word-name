@@ -60,18 +60,18 @@ export default function RoundLog({ rounds, players, isHost }: RoundLogProps) {
                 {showImporter && (
                   <div className="flex items-center space-x-2">
                     <span className="text-sm text-gray-600">Importer:</span>
-                    <span className="font-medium">{getPlayerName(round.importerId)}</span>
+                    <span className="font-medium text-black">{getPlayerName(round.importerId)}</span>
                   </div>
                 )}
                 
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 bg-red-500 rounded"></div>
-                    <span className="text-sm font-medium">{round.wordA}</span>
+                    <span className="text-sm font-medium text-black">{round.wordA}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-4 h-4 bg-blue-500 rounded"></div>
-                    <span className="text-sm font-medium">{round.wordB}</span>
+                    <span className="text-sm font-medium text-black">{round.wordB}</span>
                   </div>
                 </div>
                 
