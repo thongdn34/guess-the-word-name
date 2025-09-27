@@ -1,13 +1,30 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Player } from '@/types/game';
 
 interface HeaderProps {
   roomId: string;
   player: Player;
+  onSignOut?: () => void;
 }
 
-export default function Header({ roomId, player }: HeaderProps) {
+export default function Header({ roomId, player, onSignOut }: HeaderProps) {
+  const router = useRouter();
+
+  const handleSignOut = () => {
+    // Clear localStorage
+    localStorage.removeItem('username');
+    localStorage.removeItem('isHost');
+    
+    // Call custom sign out handler if provided
+    if (onSignOut) {
+      onSignOut();
+    }
+    
+    // Redirect to home page
+    router.push('/');
+  };
   return (
     <header className="bg-white shadow-sm border-b">
       <div className="container mx-auto px-4 py-4">
@@ -31,6 +48,12 @@ export default function Header({ roomId, player }: HeaderProps) {
                 )}
               </p>
             </div>
+            <button
+              onClick={handleSignOut}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </div>

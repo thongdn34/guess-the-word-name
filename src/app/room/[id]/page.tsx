@@ -22,7 +22,7 @@ export default function RoomPage() {
   const [isInitialized, setIsInitialized] = useState(false);
 
   const { gameState, loading, error } = useRoom(roomId);
-  const { player } = usePlayer(roomId, username, isHost);
+  const { player, signOut: playerSignOut } = usePlayer(roomId, username, isHost);
 
   useEffect(() => {
     // Get username and host status from localStorage
@@ -106,9 +106,20 @@ export default function RoomPage() {
   const isImporter = gameState.currentRound?.importerId === player.id && gameState.currentRound?.importerId !== 'pending';
   const currentWord = isImporter ? gameState.currentRound?.wordA : gameState.currentRound?.wordB;
 
+  const handleSignOut = async () => {
+    // Sign out the player (updates Firestore and clears localStorage)
+    if (playerSignOut) {
+      await playerSignOut();
+    }
+    
+    // Clear other localStorage items
+    localStorage.removeItem('username');
+    localStorage.removeItem('isHost');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Header roomId={roomId} player={player} />
+      <Header roomId={roomId} player={player} onSignOut={handleSignOut} />
       
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -117,7 +128,8 @@ export default function RoomPage() {
             <PlayerList 
               players={gameState.players} 
               currentPlayer={player}
-              importerId={gameState.currentRound?.importerId}
+              roomId={roomId}
+              isHost={isHost}
             />
             
             {isHost && (
@@ -157,7 +169,7 @@ export default function RoomPage() {
 
           {/* Right Column - Round Log */}
           <div>
-            <RoundLog rounds={gameState.rounds} players={gameState.players} />
+            <RoundLog rounds={gameState.rounds} players={gameState.players} isHost={isHost} />
           </div>
         </div>
       </div>

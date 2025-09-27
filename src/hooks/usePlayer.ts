@@ -20,6 +20,13 @@ export function usePlayer(roomId: string, username: string, isHost: boolean = fa
         let playerId = localStorage.getItem(storageKey);
         let playerExists = false;
 
+        // Check for rejoin player ID from localStorage
+        const rejoinPlayerId = localStorage.getItem('rejoinPlayerId');
+        if (rejoinPlayerId) {
+          playerId = rejoinPlayerId;
+          localStorage.removeItem('rejoinPlayerId'); // Clean up
+        }
+
         // If we have a stored player ID, check if it still exists in Firestore
         if (playerId) {
           const playerRef = doc(db, 'rooms', roomId, 'players', playerId);
@@ -113,5 +120,20 @@ export function usePlayer(roomId: string, username: string, isHost: boolean = fa
     localStorage.removeItem(storageKey);
   };
 
-  return { player, loading, error, updateScore, clearPlayerData };
+  const signOut = async () => {
+    if (!player) return;
+
+    try {
+      // Mark player as disconnected in Firestore
+      const playerRef = doc(db, 'rooms', roomId, 'players', player.id);
+      await updateDoc(playerRef, { connected: false });
+      
+      // Clear localStorage
+      clearPlayerData();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
+  return { player, loading, error, updateScore, clearPlayerData, signOut };
 }

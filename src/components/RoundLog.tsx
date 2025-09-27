@@ -1,13 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import { Round, Player } from '@/types/game';
 
 interface RoundLogProps {
   rounds: Round[];
   players: Player[];
+  isHost: boolean;
 }
 
-export default function RoundLog({ rounds, players }: RoundLogProps) {
+export default function RoundLog({ rounds, players, isHost }: RoundLogProps) {
+  const [showImporter, setShowImporter] = useState(false);
   const getPlayerName = (playerId: string) => {
     const player = players.find(p => p.id === playerId);
     return player?.username || 'Unknown';
@@ -24,7 +27,21 @@ export default function RoundLog({ rounds, players }: RoundLogProps) {
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">
-      <h3 className="text-xl font-bold text-gray-900 mb-4">Round History</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-bold text-gray-900">Round History</h3>
+        {isHost && (
+          <button
+            onClick={() => setShowImporter(!showImporter)}
+            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+              showImporter
+                ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            }`}
+          >
+            {showImporter ? 'Hide' : 'Show'} Importer
+          </button>
+        )}
+      </div>
       
       {rounds.length === 0 ? (
         <p className="text-gray-500 text-center py-4">No rounds yet</p>
@@ -40,10 +57,12 @@ export default function RoundLog({ rounds, players }: RoundLogProps) {
               </div>
               
               <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-600">Importer:</span>
-                  <span className="font-medium">{getPlayerName(round.importerId)}</span>
-                </div>
+                {showImporter && (
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-600">Importer:</span>
+                    <span className="font-medium">{getPlayerName(round.importerId)}</span>
+                  </div>
+                )}
                 
                 <div className="flex items-center space-x-4">
                   <div className="flex items-center space-x-2">

@@ -58,7 +58,10 @@ export function useRoom(roomId: string) {
       ),
       (roundsSnapshot) => {
         if (!roundsSnapshot.empty) {
-          const currentRound = roundsSnapshot.docs[0].data() as Round;
+          const currentRound = {
+            id: roundsSnapshot.docs[0].id,
+            ...roundsSnapshot.docs[0].data()
+          } as Round;
           setGameState(prev => ({ ...prev, currentRound }));
         }
       },
