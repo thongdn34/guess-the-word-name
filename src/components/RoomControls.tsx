@@ -57,11 +57,20 @@ export default function RoomControls({ room, currentRound, players, roomId }: Ro
   const startRound = async () => {
     if (!currentRound || players.length < 2) return;
     
+    // Check if currentRound has a valid ID
+    if (!currentRound.id) {
+      console.error('Current round has no ID:', currentRound);
+      alert('Round data is not ready. Please try again.');
+      return;
+    }
+    
     setIsStarting(true);
     try {
       // Select random importer
       const randomIndex = Math.floor(Math.random() * players.length);
       const importerId = players[randomIndex].id;
+      
+      console.log('Starting round with ID:', currentRound.id, 'Importer:', importerId);
       
       // Update round with importer and start time
       await updateDoc(doc(db, 'rooms', roomId, 'rounds', currentRound.id), {
@@ -88,6 +97,17 @@ export default function RoomControls({ room, currentRound, players, roomId }: Ro
     setIsMarkingWinner(true);
     try {
       await runTransaction(db, async (transaction) => {
+        // First, read the player document to get current score
+        const playerRef = doc(db, 'rooms', roomId, 'players', selectedWinner);
+        const playerDoc = await transaction.get(playerRef);
+        
+        if (!playerDoc.exists()) {
+          throw new Error('Player not found');
+        }
+        
+        const currentScore = playerDoc.data().score || 0;
+        
+        // Then perform all writes
         // Update round with winner
         const roundRef = doc(db, 'rooms', roomId, 'rounds', currentRound.id);
         transaction.update(roundRef, {
@@ -97,12 +117,7 @@ export default function RoomControls({ room, currentRound, players, roomId }: Ro
         });
         
         // Update player score
-        const playerRef = doc(db, 'rooms', roomId, 'players', selectedWinner);
-        const playerDoc = await transaction.get(playerRef);
-        if (playerDoc.exists()) {
-          const currentScore = playerDoc.data().score || 0;
-          transaction.update(playerRef, { score: currentScore + 50 });
-        }
+        transaction.update(playerRef, { score: currentScore + 50 });
       });
       
       // Reset room status
@@ -121,7 +136,7 @@ export default function RoomControls({ room, currentRound, players, roomId }: Ro
     }
   };
 
-  const canStart = currentRound && currentRound.importerId === 'pending' && players.length >= 2;
+  const canStart = currentRound && currentRound.id && currentRound.importerId === 'pending' && players.length >= 2;
   const canMarkWinner = currentRound && currentRound.startedAt && !currentRound.winnerId;
 
   return (

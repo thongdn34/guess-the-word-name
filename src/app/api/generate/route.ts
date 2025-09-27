@@ -1,46 +1,65 @@
 import { NextRequest, NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import fs from 'fs';
+import path from 'path';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+// Cache for word pairs to avoid reading file on every request
+let wordPairs: Array<{wordA: string, wordB: string}> = [];
+
+function loadWordPairs() {
+  if (wordPairs.length === 0) {
+    try {
+      const csvPath = path.join(process.cwd(), 'data', 'word-pairs.csv');
+      const csvContent = fs.readFileSync(csvPath, 'utf-8');
+      const lines = csvContent.trim().split('\n');
+      
+      // Skip header line and filter out empty lines
+      wordPairs = lines.slice(1)
+        .filter(line => line.trim() !== '') // Remove empty lines
+        .map(line => {
+          const [wordA, wordB] = line.split(',');
+          // Check if both words exist and are not empty
+          if (wordA && wordB && wordA.trim() && wordB.trim()) {
+            return { wordA: wordA.trim(), wordB: wordB.trim() };
+          }
+          return null;
+        })
+        .filter(pair => pair !== null); // Remove null entries
+    } catch (error) {
+      console.error('Error loading word pairs:', error);
+      // Fallback word pairs if file can't be read
+      wordPairs = [
+        { wordA: 'thể dục', wordB: 'tập gym' },
+        { wordA: 'học tập', wordB: 'ôn bài' },
+        { wordA: 'ăn uống', wordB: 'thưởng thức' }
+      ];
+    }
+  }
+  return wordPairs;
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const { roomId, promptOverride } = await request.json();
+    const { roomId } = await request.json();
 
     if (!roomId) {
       return NextResponse.json({ error: 'Room ID is required' }, { status: 400 });
     }
 
-    const systemPrompt = `You are an assistant that returns two short Vietnamese phrases/words that are near-synonyms (same meaning or very close). Output must be valid JSON with exactly two keys: "wordA" and "wordB". "wordA" should be the more formal / dictionary variant; "wordB" should be the colloquial / slang or alternate phrasing. Each value must be a short string (1-3 words). No extra commentary.`;
-
-    const userPrompt = promptOverride || 'Generate one pair.';
-
-    const completion = await openai.chat.completions.create({
-      // model: 'gpt-3.5-turbo',
-      model: 'gpt-4o-mini',
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ],
-      temperature: 0.8,
-      max_tokens: 100,
-    });
-
-    const response = completion.choices[0]?.message?.content;
+    // Load word pairs from CSV
+    const pairs = loadWordPairs();
     
-    if (!response) {
-      throw new Error('No response from OpenAI');
+    if (pairs.length === 0) {
+      console.error('No word pairs loaded from CSV file');
+      throw new Error('No word pairs available');
     }
 
-    // Parse the JSON response
-    const wordPair = JSON.parse(response);
+    console.log(`Loaded ${pairs.length} word pairs from CSV`);
+
+    // Select a random word pair
+    const randomIndex = Math.floor(Math.random() * pairs.length);
+    const wordPair = pairs[randomIndex];
     
-    // Validate the response structure
-    if (!wordPair.wordA || !wordPair.wordB) {
-      throw new Error('Invalid response format from OpenAI');
-    }
+    console.log(`Selected word pair ${randomIndex + 1}/${pairs.length}:`, wordPair);
 
     return NextResponse.json(wordPair);
   } catch (error) {
