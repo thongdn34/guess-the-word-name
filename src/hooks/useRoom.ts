@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { doc, onSnapshot, collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { doc, onSnapshot, collection, query, orderBy, limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Room, Player, Round, GameState, VotingSession, Vote } from '@/types/game';
 
