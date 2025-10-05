@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { doc, deleteDoc, collection, getDocs, updateDoc, runTransaction } from 'firebase/firestore';
+import { doc, collection, getDocs, runTransaction } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Player } from '@/types/game';
 

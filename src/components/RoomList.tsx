@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { collection, query, orderBy, onSnapshot, where, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, getDocs } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Room, Player } from '@/types/game';
 
@@ -29,9 +29,11 @@ export default function RoomList({ onJoinRoom }: RoomListProps) {
         const roomsData: RoomWithPlayers[] = [];
         
         for (const roomDoc of roomsSnapshot.docs) {
+          const roomDocData = roomDoc.data();
           const roomData = {
             id: roomDoc.id,
-            ...roomDoc.data()
+            ...roomDocData,
+            createdAt: roomDocData.createdAt?.toDate ? roomDocData.createdAt.toDate() : new Date(roomDocData.createdAt)
           } as Room;
 
           // Get players for this room
@@ -130,7 +132,7 @@ export default function RoomList({ onJoinRoom }: RoomListProps) {
                 </div>
                 <div className="flex items-center space-x-4 text-sm text-gray-600">
                   <span>{room.playerCount} player{room.playerCount !== 1 ? 's' : ''}</span>
-                  <span>Created {new Date(room.createdAt.seconds * 1000).toLocaleTimeString()}</span>
+                  <span>Created {room.createdAt.toLocaleTimeString()}</span>
                 </div>
                 {room.players.length > 0 && (
                   <div className="mt-2">
