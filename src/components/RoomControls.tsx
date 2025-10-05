@@ -4,15 +4,20 @@ import { useState } from 'react';
 import { doc, updateDoc, collection, addDoc, serverTimestamp, runTransaction } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Room, Player, Round } from '@/types/game';
+import StartVoteButton from './StartVoteButton';
+
+import { VotingSession } from '@/types/game';
 
 interface RoomControlsProps {
   room: Room;
   currentRound: Round | null;
   players: Player[];
   roomId: string;
+  currentVotingSession: VotingSession | null;
+  onEndVoting?: () => void;
 }
 
-export default function RoomControls({ room, currentRound, players, roomId }: RoomControlsProps) {
+export default function RoomControls({ room, currentRound, players, roomId, currentVotingSession, onEndVoting }: RoomControlsProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [isMarkingWinner, setIsMarkingWinner] = useState(false);
@@ -174,6 +179,16 @@ export default function RoomControls({ room, currentRound, players, roomId }: Ro
           {isStarting ? 'Starting...' : 'Start Round'}
         </button>
         
+        {/* Start Vote Button */}
+        <StartVoteButton
+          currentRound={currentRound}
+          players={players}
+          roomId={roomId}
+          isHost={true}
+          currentVotingSession={currentVotingSession}
+          onEndVoting={onEndVoting}
+        />
+
         {/* Mark Winner Section */}
         {canMarkWinner && (
           <div className="space-y-3">

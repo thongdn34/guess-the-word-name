@@ -36,6 +36,24 @@ export interface WordPair {
   wordB: string;
 }
 
+export interface Vote {
+  id: string;
+  voterId: string;
+  votedForId: string;
+  createdAt: Date;
+}
+
+export interface VotingSession {
+  id: string;
+  roundId: string;
+  status: 'active' | 'completed';
+  votes: Vote[];
+  startedAt: Date;
+  endedAt?: Date;
+  winnerId?: string; // Player with most votes
+  isImporter?: boolean; // Whether the winner is the importer
+}
+
 export interface GameState {
   room: Room | null;
   players: Player[];
@@ -43,4 +61,5 @@ export interface GameState {
   rounds: Round[];
   isHost: boolean;
   currentPlayer: Player | null;
+  currentVotingSession: VotingSession | null;
 }

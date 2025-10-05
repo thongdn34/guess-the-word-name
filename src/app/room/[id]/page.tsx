@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useRoom } from "@/hooks/useRoom";
 import { usePlayer } from "@/hooks/usePlayer";
+import { useVoting } from "@/hooks/useVoting";
 import { createRoom } from "@/lib/firestore";
 import Header from "@/components/Header";
 import PlayerList from "@/components/PlayerList";
@@ -11,6 +12,8 @@ import WordCard from "@/components/WordCard";
 import RoomControls from "@/components/RoomControls";
 import RoundLog from "@/components/RoundLog";
 import Scoreboard from "@/components/Scoreboard";
+import VoteModal from "@/components/VoteModal";
+import VoteResultsModal from "@/components/VoteResultsModal";
 
 export default function RoomPage() {
   const params = useParams();
@@ -23,6 +26,8 @@ export default function RoomPage() {
   const wordCardRef = useRef<HTMLDivElement>(null);
   const [previousRoundId, setPreviousRoundId] = useState<string | null>(null);
   const [showRoundLog, setShowRoundLog] = useState(false);
+  const [showVoteModal, setShowVoteModal] = useState(false);
+  const [showVoteResults, setShowVoteResults] = useState(false);
 
   const { gameState, loading, error } = useRoom(roomId);
   const { player, signOut: playerSignOut } = usePlayer(
@@ -30,6 +35,7 @@ export default function RoomPage() {
     username,
     isHost
   );
+  const { endVotingSession, startNewRound } = useVoting();
 
   useEffect(() => {
     // Get username and host status from localStorage
@@ -91,6 +97,56 @@ export default function RoomPage() {
       setPreviousRoundId(gameState.currentRound.id);
     }
   }, [gameState.currentRound?.id, gameState.room?.status, previousRoundId]);
+
+  const handleEndVoting = useCallback(async () => {
+    if (!gameState.currentVotingSession || !gameState.currentRound || !gameState.players) return;
+    
+    try {
+      await endVotingSession(
+        roomId,
+        gameState.currentVotingSession,
+        gameState.players,
+        gameState.currentRound
+      );
+      
+      setShowVoteModal(false);
+      setShowVoteResults(true);
+    } catch (error) {
+      console.error('Error ending voting:', error);
+      alert('Failed to end voting. Please try again.');
+    }
+  }, [gameState.currentVotingSession, gameState.currentRound, gameState.players, endVotingSession, roomId]);
+
+  // Handle voting session changes
+  useEffect(() => {
+    if (gameState.currentVotingSession) {
+      const { currentVotingSession, players } = gameState;
+      
+      // Show vote modal for active voting session
+      if (currentVotingSession.status === 'active' && !showVoteModal) {
+        setShowVoteModal(true);
+      }
+      
+      // Auto-end voting when all players have voted
+      if (currentVotingSession.status === 'active' && 
+          currentVotingSession.votes.length >= players.length) {
+        handleEndVoting();
+      }
+    } else {
+      setShowVoteModal(false);
+      setShowVoteResults(false);
+    }
+  }, [gameState, showVoteModal, handleEndVoting]);
+
+  const handleStartNewRound = async () => {
+    try {
+      await startNewRound(roomId);
+      setShowVoteResults(false);
+    } catch (error) {
+      console.error('Error starting new round:', error);
+      alert('Failed to start new round. Please try again.');
+    }
+  };
 
   if (!isInitialized || loading) {
     return (
@@ -191,6 +247,8 @@ export default function RoomPage() {
                 currentRound={gameState.currentRound}
                 players={gameState.players}
                 roomId={roomId}
+                currentVotingSession={gameState.currentVotingSession}
+                onEndVoting={handleEndVoting}
               />
             )}
           </div>
@@ -231,6 +289,29 @@ export default function RoomPage() {
             )}
         </div>
       </div>
+
+      {/* Voting Modals */}
+      {gameState.currentVotingSession && player && (
+        <>
+          <VoteModal
+            isOpen={showVoteModal}
+            onClose={() => setShowVoteModal(false)}
+            players={gameState.players}
+            currentPlayer={player}
+            votingSession={gameState.currentVotingSession}
+            roomId={roomId}
+          />
+          
+          <VoteResultsModal
+            isOpen={showVoteResults}
+            onClose={() => setShowVoteResults(false)}
+            onStartNewRound={handleStartNewRound}
+            players={gameState.players}
+            votingSession={gameState.currentVotingSession}
+            isHost={isHost}
+          />
+        </>
+      )}
     </div>
   );
 }
