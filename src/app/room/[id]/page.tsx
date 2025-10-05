@@ -207,7 +207,7 @@ export default function RoomPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Header roomId={roomId} player={player} onSignOut={handleSignOut} />
+      <Header roomId={roomId} player={player} onSignOut={handleSignOut} onLeave={handleSignOut} />
 
       {/* Host Controls - RoundLog Toggle */}
       {isHost && (

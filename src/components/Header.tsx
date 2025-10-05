@@ -2,19 +2,20 @@
 
 import { useRouter } from 'next/navigation';
 import { Player } from '@/types/game';
+import LeaveRoomButton from './LeaveRoomButton';
 
 interface HeaderProps {
   roomId: string;
   player: Player;
   onSignOut?: () => void;
+  onLeave?: () => void;
 }
 
-export default function Header({ roomId, player, onSignOut }: HeaderProps) {
+export default function Header({ roomId, player, onSignOut, onLeave }: HeaderProps) {
   const router = useRouter();
 
   const handleSignOut = () => {
-    // Clear localStorage
-    localStorage.removeItem('username');
+    // Clear localStorage (but keep username for convenience)
     localStorage.removeItem('isHost');
     
     // Call custom sign out handler if provided
@@ -48,12 +49,19 @@ export default function Header({ roomId, player, onSignOut }: HeaderProps) {
                 )}
               </p>
             </div>
-            <button
-              onClick={handleSignOut}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-            >
-              Sign Out
-            </button>
+            <div className="flex items-center space-x-2">
+              <LeaveRoomButton
+                roomId={roomId}
+                player={player}
+                onLeave={onLeave}
+              />
+              <button
+                onClick={handleSignOut}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </div>
