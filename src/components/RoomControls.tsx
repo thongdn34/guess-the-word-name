@@ -5,6 +5,7 @@ import { doc, updateDoc, collection, addDoc, serverTimestamp, runTransaction } f
 import { db } from '@/lib/firebase';
 import { Room, Player, Round } from '@/types/game';
 import StartVoteButton from './StartVoteButton';
+import EndVoteButton from './EndVoteButton';
 
 import { VotingSession } from '@/types/game';
 
@@ -186,6 +187,14 @@ export default function RoomControls({ room, currentRound, players, roomId, curr
           roomId={roomId}
           isHost={true}
           currentVotingSession={currentVotingSession}
+          onEndVoting={onEndVoting}
+        />
+
+        {/* End Vote Button */}
+        <EndVoteButton
+          currentVotingSession={currentVotingSession}
+          roomId={roomId}
+          isHost={true}
           onEndVoting={onEndVoting}
         />
 

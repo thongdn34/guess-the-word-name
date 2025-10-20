@@ -44,7 +44,7 @@ export default function VoteResultsModal({
               {isImporter ? '🎯 Correct! The importer was found!' : '❌ Wrong! The importer is still hidden!'}
             </p>
             <p className="text-lg mt-2">
-              Most votes: <span className="font-bold">{winner?.username}</span>
+              Most votes: <span className="font-bold text-black">{winner?.username}</span>
             </p>
           </div>
         </div>
