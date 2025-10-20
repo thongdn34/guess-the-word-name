@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef } from "react";
+import { forwardRef, useEffect, useState } from "react";
 
 interface WordCardProps {
   word: string;
@@ -9,6 +9,17 @@ interface WordCardProps {
 
 const WordCard = forwardRef<HTMLDivElement, WordCardProps>(
   ({ word }, ref) => {
+    const [isBlurred, setIsBlurred] = useState(false);
+
+    // Automatically blur the word 5 seconds after it changes/appears
+    useEffect(() => {
+      setIsBlurred(false);
+      const timeoutId = setTimeout(() => setIsBlurred(true), 5000);
+      return () => clearTimeout(timeoutId);
+    }, [word]);
+
+    const toggleBlur = () => setIsBlurred((prev) => !prev);
+
     return (
       <div
         ref={ref}
@@ -23,9 +34,23 @@ const WordCard = forwardRef<HTMLDivElement, WordCardProps>(
           </p>
         </div>
 
-        <div className="rounded-2xl p-12 mx-auto max-w-md bg-blue-500 text-white">
-          <div className="text-4xl font-bold mb-4">{word}</div>
-          <div className="text-lg opacity-90">Guess This Word</div>
+        <div
+          className="rounded-2xl p-12 mx-auto max-w-md bg-blue-500 text-white select-none cursor-pointer"
+          onClick={toggleBlur}
+          role="button"
+          aria-pressed={!isBlurred}
+          title={isBlurred ? "Tap to reveal" : "Tap to blur"}
+        >
+          <div
+            className={`text-4xl font-bold mb-4 transition filter ${
+              isBlurred ? "blur" : "blur-0"
+            }`}
+          >
+            {word}
+          </div>
+          <div className="text-lg opacity-90">
+            {isBlurred ? "Tap to reveal" : "Tap to blur"}
+          </div>
         </div>
 
         <div className="mt-6 text-sm text-gray-600">
