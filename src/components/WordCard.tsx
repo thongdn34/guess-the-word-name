@@ -29,7 +29,7 @@ const WordCard = forwardRef<HTMLDivElement, WordCardProps>(
         </div>
 
         <div className="mt-6 text-sm text-gray-600">
-          <p>Listen to the importer&apos;s hints and try to guess the word</p>
+          <p>Listen to the imposter&apos;s hints and try to guess the word</p>
         </div>
       </div>
     );

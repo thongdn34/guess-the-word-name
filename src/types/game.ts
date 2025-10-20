@@ -14,6 +14,7 @@ export interface Player {
   joinedAt: Date;
   isHost: boolean;
   connected: boolean;
+  disabled?: boolean; // Disabled from voting until new round
 }
 
 export interface Round {
@@ -51,7 +52,7 @@ export interface VotingSession {
   startedAt: Date;
   endedAt?: Date;
   winnerId?: string; // Player with most votes
-  isImporter?: boolean; // Whether the winner is the importer
+  isImporter?: boolean; // Whether the winner is the imposter
 }
 
 export interface GameState {

@@ -72,13 +72,11 @@ export default function RoomControls({ room, currentRound, players, roomId, curr
     
     setIsStarting(true);
     try {
-      // Select random importer
+      // Select random imposter
       const randomIndex = Math.floor(Math.random() * players.length);
       const importerId = players[randomIndex].id;
       
-      console.log('Starting round with ID:', currentRound.id, 'Importer:', importerId);
-      
-      // Update round with importer and start time
+      // Update round with imposter and start time
       await updateDoc(doc(db, 'rooms', roomId, 'rounds', currentRound.id), {
         importerId,
         startedAt: serverTimestamp(),
@@ -138,6 +136,14 @@ export default function RoomControls({ room, currentRound, players, roomId, curr
         });
       });
       
+      // End any active voting session
+      if (currentVotingSession && currentVotingSession.status === 'active') {
+        await updateDoc(doc(db, 'rooms', roomId, 'votingSessions', currentVotingSession.id), {
+          status: 'completed',
+          endedAt: serverTimestamp(),
+        });
+      }
+      
       // Reset room status
       await updateDoc(doc(db, 'rooms', roomId), {
         status: 'waiting',
@@ -145,6 +151,11 @@ export default function RoomControls({ room, currentRound, players, roomId, curr
       });
       
       setSelectedWinners([]);
+      
+      // Notify parent component that voting has ended
+      if (onEndVoting) {
+        onEndVoting();
+      }
       
     } catch (error) {
       console.error('Error marking winners:', error);

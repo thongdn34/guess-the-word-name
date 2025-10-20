@@ -60,30 +60,62 @@ export default function VoteModal({
   };
 
   const handleClose = () => {
-    if (!hasVoted) {
-      alert('Please cast your vote before closing.');
-      return;
-    }
     onClose();
   };
 
   if (!isOpen) return null;
 
+  // Prevent disabled players from accessing the modal
+  if (currentPlayer.disabled) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4">
+          <div className="text-center">
+            <div className="text-red-500 text-6xl mb-4">🚫</div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">
+              Access Denied
+            </h2>
+            <p className="text-gray-600 mb-6">
+              You are disabled from voting until the next round starts.
+            </p>
+            <button
+              onClick={onClose}
+              className="w-full bg-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-400 transition-colors"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md mx-4">
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            Vote for the Importer
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-bold text-gray-900">
+              Vote for the Importer
+            </h2>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-gray-600 transition-colors"
+              title="Close voting modal"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
           <p className="text-gray-600">
-            Who do you think is the importer? Choose carefully!
+            Who do you think is the imposter? Choose carefully!
           </p>
         </div>
 
         <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
           {players
-            .filter(player => player.id !== currentPlayer.id) // Can't vote for yourself
+            .filter(player => player.id !== currentPlayer.id && !player.disabled) // Can't vote for yourself or disabled players
             .map((player) => (
               <label
                 key={player.id}
@@ -121,10 +153,9 @@ export default function VoteModal({
           
           <button
             onClick={handleClose}
-            disabled={!hasVoted}
-            className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="flex-1 bg-gray-300 text-gray-700 py-3 px-4 rounded-lg font-medium hover:bg-gray-400 transition-colors"
           >
-            {hasVoted ? 'Close' : 'Cancel'}
+            {hasVoted ? 'Close' : 'Close'}
           </button>
         </div>
 

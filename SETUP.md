@@ -57,7 +57,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 3. **Join Room**: Other players enter the room ID and their username
 4. **Generate Words**: Host clicks "Generate New Words" to get Vietnamese word pairs
 5. **Start Round**: Host clicks "Start Round" to begin
-6. **Play**: One player is the importer (red card), others are guessers (blue card)
+6. **Play**: One player is the imposter (red card), others are guessers (blue card)
 7. **Mark Winner**: Host selects the winner who gets 50 points
 8. **Repeat**: Generate new words and start another round
 

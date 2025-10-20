@@ -122,11 +122,6 @@ export default function RoomPage() {
     if (gameState.currentVotingSession) {
       const { currentVotingSession, players } = gameState;
       
-      // Show vote modal for active voting session
-      if (currentVotingSession.status === 'active' && !showVoteModal) {
-        setShowVoteModal(true);
-      }
-      
       // Auto-end voting when all players have voted
       if (currentVotingSession.status === 'active' && 
           currentVotingSession.votes.length >= players.length) {
@@ -138,9 +133,16 @@ export default function RoomPage() {
     }
   }, [gameState, showVoteModal, handleEndVoting]);
 
+  // Close vote modal if player becomes disabled
+  useEffect(() => {
+    if (player?.disabled && showVoteModal) {
+      setShowVoteModal(false);
+    }
+  }, [player?.disabled, showVoteModal]);
+
   const handleStartNewRound = async () => {
     try {
-      await startNewRound(roomId);
+      await startNewRound(roomId, gameState.players);
       setShowVoteResults(false);
     } catch (error) {
       console.error('Error starting new round:', error);
@@ -240,6 +242,83 @@ export default function RoomPage() {
               roomId={roomId}
               isHost={isHost}
             />
+
+            {/* Vote Toggle Button */}
+            {gameState.currentVotingSession && gameState.currentVotingSession.status === 'active' && (
+              <div className="bg-white rounded-2xl shadow-lg p-6">
+                <h3 className="text-xl font-bold text-gray-900 mb-4">Voting</h3>
+                {(() => {
+                  const hasVoted = gameState.currentVotingSession?.votes.some(vote => vote.voterId === player.id) || false;
+                  const isDisabled = player.disabled;
+                  
+                  if (isDisabled) {
+                    return (
+                      <>
+                        <button
+                          disabled
+                          className="w-full py-3 px-4 rounded-lg font-medium bg-gray-300 text-gray-500 cursor-not-allowed"
+                        >
+                          Voting Disabled
+                        </button>
+                        <p className="text-sm text-red-600 mt-2 text-center">
+                          You are disabled from voting until the next round starts
+                        </p>
+                      </>
+                    );
+                  }
+                  
+                  return (
+                    <>
+                      <button
+                        onClick={() => {
+                          if (!player.disabled) {
+                            setShowVoteModal(!showVoteModal);
+                          }
+                        }}
+                        className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+                          showVoteModal
+                            ? 'bg-red-600 text-white hover:bg-red-700'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
+                        }`}
+                      >
+                        {showVoteModal ? 'Close Vote Modal' : 'Open Vote Modal'}
+                        {hasVoted && !showVoteModal && (
+                          <span className="ml-2 text-green-200">✓</span>
+                        )}
+                      </button>
+                      <p className="text-sm text-gray-600 mt-2 text-center">
+                        {showVoteModal 
+                          ? 'Click to close the voting interface' 
+                          : hasVoted 
+                            ? 'You have voted. Click to view voting interface'
+                            : 'Click to open the voting interface'
+                        }
+                      </p>
+                    </>
+                  );
+                })()}
+              </div>
+            )}
+
+            {/* Disabled Player Notice */}
+            {player.disabled && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-2xl shadow-lg p-6">
+                <div className="text-center">
+                  <div className="text-red-500 text-4xl mb-3">🚫</div>
+                  <h3 className="text-xl font-bold text-red-800 mb-2">
+                    You Are Disabled
+                  </h3>
+                  <p className="text-red-600 mb-4">
+                    You cannot participate in voting or other game actions until the next round starts.
+                  </p>
+                  <div className="bg-red-100 border border-red-300 rounded-lg p-3">
+                    <p className="text-sm text-red-700">
+                      <strong>Reason:</strong> You received the most votes in the previous voting session.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {isHost && (
               <RoomControls

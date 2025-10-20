@@ -49,10 +49,17 @@ export default function PlayerList({ players, currentPlayer, roomId, isHost }: P
                 <div className={`w-3 h-3 rounded-full ${
                   player.connected ? 'bg-green-500' : 'bg-gray-400'
                 }`} />
-                <span className="font-medium text-gray-900">{player.username}</span>
+                <span className={`font-medium ${player.disabled ? 'text-red-600' : 'text-gray-900'}`}>
+                  {player.username}
+                </span>
                 {player.isHost && (
                   <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
                     Host
+                  </span>
+                )}
+                {player.disabled && (
+                  <span className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">
+                    Disabled
                   </span>
                 )}
               </div>
