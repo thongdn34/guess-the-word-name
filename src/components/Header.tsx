@@ -27,41 +27,41 @@ export default function Header({ roomId, player, onSignOut, onLeave }: HeaderPro
     router.push('/');
   };
   return (
-    <header className="bg-white shadow-sm border-b">
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <h1 className="text-2xl font-bold text-gray-900">Guess the Word</h1>
-            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+    <header className="bg-white shadow-sm border-b w-full">
+      <div className="container mx-auto px-4 py-3 sm:py-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          {/* Text section */}
+          <div className="flex flex-col items-start gap-2 md:flex-row md:items-center md:gap-4">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Guess the Word</h1>
+            <div className="bg-blue-100 text-blue-800 px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium">
               Room: {roomId}
             </div>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <div className="text-right">
-              <p className="text-sm text-gray-600">Playing as</p>
-              <p className="font-medium text-gray-900">
+            <div className="text-left md:text-right">
+              <p className="text-xs sm:text-sm text-gray-600">Playing as</p>
+              <p className="font-medium text-gray-900 text-sm sm:text-base flex items-center flex-wrap">
                 {player.username}
                 {player.isHost && (
-                  <span className="ml-2 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
+                  <span className="ml-2 mt-1 sm:mt-0 bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">
                     Host
                   </span>
                 )}
               </p>
             </div>
-            <div className="flex items-center space-x-2">
-              <LeaveRoomButton
-                roomId={roomId}
-                player={player}
-                onLeave={onLeave}
-              />
-              <button
-                onClick={handleSignOut}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                Sign Out
-              </button>
-            </div>
+          </div>
+
+          {/* Actions section */}
+          <div className="flex items-center gap-2 sm:gap-4 mt-4 md:mt-0">
+            <LeaveRoomButton
+              roomId={roomId}
+              player={player}
+              onLeave={onLeave}
+            />
+            <button
+              onClick={handleSignOut}
+              className="px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+            >
+              Sign Out
+            </button>
           </div>
         </div>
       </div>
