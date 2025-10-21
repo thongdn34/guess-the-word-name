@@ -91,6 +91,21 @@ export function useVoting() {
     }
   };
 
+  const continueRoundAfterTie = async (roomId: string) => {
+    setIsProcessing(true);
+    try {
+      // Reset room status to allow new voting
+      await updateDoc(doc(db, 'rooms', roomId), {
+        status: 'in_round',
+      });
+    } catch (error) {
+      console.error('Error continuing round after tie:', error);
+      throw error;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const startNewRound = async (roomId: string, players: Player[]) => {
     setIsProcessing(true);
     try {
@@ -122,6 +137,7 @@ export function useVoting() {
   return {
     endVotingSession,
     startNewRound,
+    continueRoundAfterTie,
     isProcessing,
   };
 }
