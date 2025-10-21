@@ -14,6 +14,7 @@ import RoundLog from "@/components/RoundLog";
 import Scoreboard from "@/components/Scoreboard";
 import VoteModal from "@/components/VoteModal";
 import VoteResultsModal from "@/components/VoteResultsModal";
+import TieResultsModal from "@/components/TieResultsModal";
 
 export default function RoomPage() {
   const params = useParams();
@@ -28,6 +29,7 @@ export default function RoomPage() {
   const [showRoundLog, setShowRoundLog] = useState(false);
   const [showVoteModal, setShowVoteModal] = useState(false);
   const [showVoteResults, setShowVoteResults] = useState(false);
+  const [showTieResults, setShowTieResults] = useState(false);
 
   const { gameState, loading, error } = useRoom(roomId);
   const { player, signOut: playerSignOut } = usePlayer(
@@ -35,7 +37,7 @@ export default function RoomPage() {
     username,
     isHost
   );
-  const { endVotingSession, startNewRound } = useVoting();
+  const { endVotingSession, startNewRound, continueRoundAfterTie } = useVoting();
 
   useEffect(() => {
     // Get username and host status from localStorage
@@ -102,7 +104,7 @@ export default function RoomPage() {
     if (!gameState.currentVotingSession || !gameState.currentRound || !gameState.players) return;
     
     try {
-      await endVotingSession(
+      const result = await endVotingSession(
         roomId,
         gameState.currentVotingSession,
         gameState.players,
@@ -110,7 +112,13 @@ export default function RoomPage() {
       );
       
       setShowVoteModal(false);
-      setShowVoteResults(true);
+      
+      // Show appropriate results based on outcome
+      if (result.isTie) {
+        setShowTieResults(true);
+      } else {
+        setShowVoteResults(true);
+      }
     } catch (error) {
       console.error('Error ending voting:', error);
       alert('Failed to end voting. Please try again.');
@@ -130,6 +138,7 @@ export default function RoomPage() {
     } else {
       setShowVoteModal(false);
       setShowVoteResults(false);
+      setShowTieResults(false);
     }
   }, [gameState, showVoteModal, handleEndVoting]);
 
@@ -147,6 +156,16 @@ export default function RoomPage() {
     } catch (error) {
       console.error('Error starting new round:', error);
       alert('Failed to start new round. Please try again.');
+    }
+  };
+
+  const handleContinueRound = async () => {
+    try {
+      await continueRoundAfterTie(roomId);
+      setShowTieResults(false);
+    } catch (error) {
+      console.error('Error continuing round:', error);
+      alert('Failed to continue round. Please try again.');
     }
   };
 
@@ -385,6 +404,15 @@ export default function RoomPage() {
             isOpen={showVoteResults}
             onClose={() => setShowVoteResults(false)}
             onStartNewRound={handleStartNewRound}
+            players={gameState.players}
+            votingSession={gameState.currentVotingSession}
+            isHost={isHost}
+          />
+          
+          <TieResultsModal
+            isOpen={showTieResults}
+            onClose={() => setShowTieResults(false)}
+            onContinueRound={handleContinueRound}
             players={gameState.players}
             votingSession={gameState.currentVotingSession}
             isHost={isHost}

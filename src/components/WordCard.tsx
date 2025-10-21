@@ -43,7 +43,7 @@ const WordCard = forwardRef<HTMLDivElement, WordCardProps>(
         >
           <div
             className={`text-4xl font-bold mb-4 transition filter ${
-              isBlurred ? "blur" : "blur-0"
+              isBlurred ? "blur-lg" : "blur-0"
             }`}
           >
             {word}
